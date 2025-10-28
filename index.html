@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin & Earn - Win Real Cash!</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        :root { --gold: #FFD700; --red: #D32F2F; --green: #388E3C; --blue: #1E88E5; --dark-bg: #1a1a1a; --light-bg: #2c2c2c; --text-light: #ffffff; --text-dark: #333; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--dark-bg); color: var(--text-light); text-align: center; padding: 20px 20px 100px 20px; }
+        .main-container { display: block; }
+        .container, #admin-panel-container { width: 100%; max-width: 400px; background: var(--light-bg); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); margin: 0 auto 20px auto; }
+        .earnings-header { margin-bottom: 20px; background: #3a3a3a; padding: 15px; border-radius: 15px; }
+        .earnings-header h2 { font-size: 1.2em; color: #ccc; margin-bottom: 5px; }
+        .earnings-header #earnings-display { font-size: 2.5em; font-weight: 700; color: var(--gold); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .spin-wheel-container { position: relative; width: 300px; height: 300px; margin: 20px auto; }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid var(--gold); position: relative; overflow: hidden; transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1); }
+        .wheel-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: 600; font-size: 1.1em; text-shadow: 1px 1px 2px black; }
+        .pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 30px solid var(--red); z-index: 10; }
+        #spin-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; border-radius: 50%; background: white; color: var(--red); font-size: 1.2em; font-weight: 700; border: 5px solid #ccc; cursor: pointer; z-index: 10; }
+        .section { margin-top: 30px; padding: 20px; background: #3a3a3a; border-radius: 15px; }
+        .section h2 { color: var(--gold); margin-bottom: 15px; }
+        .btn { display: inline-block; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+        .btn-green { background-color: var(--green); color: white; }
+        .btn-red { background-color: var(--red); color: white; }
+        .btn-blue { background-color: var(--blue); color: white; }
+        .btn.disabled { background-color: #888; color: #ccc; cursor: not-allowed; }
+        #scratch-card-container { width: 100%; max-width: 300px; height: 150px; margin: 20px auto; border-radius: 10px; position: relative; cursor: pointer; background: linear-gradient(45deg, var(--gold), #ffec8b); display: flex; justify-content: center; align-items: center; }
+        #scratch-cover { position: absolute; width: 100%; height: 100%; background: #bdc3c7; border-radius: 10px; transition: opacity 0.5s; display: flex; justify-content: center; align-items: center; font-size: 1.5em; color: var(--text-dark); }
+        #scratch-prize { font-size: 2.5em; font-weight: 700; color: var(--text-dark); visibility: hidden; }
+        .referral-status { font-size: 1.2em; margin: 20px 0; color: #eee; }
+        .referral-status span { color: var(--gold); font-weight: 700; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--light-bg); box-shadow: 0 -5px 15px rgba(0,0,0,0.3); display: flex; justify-content: space-around; align-items: center; z-index: 99; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; color: #888; transition: color 0.3s; flex-grow: 1; }
+        .nav-item.active { color: var(--gold); }
+        .nav-item svg { width: 28px; height: 28px; fill: currentColor; }
+        .nav-item span { font-size: 0.8em; margin-top: 4px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .modal.show { display: flex; opacity: 1; }
+        .modal-content { background: var(--light-bg); padding: 30px; border-radius: 15px; text-align: center; width: 100%; max-width: 350px; border: 2px solid var(--gold); transform: scale(0.8); transition: transform 0.3s ease-in-out; }
+        .modal.show .modal-content { transform: scale(1); }
+        .modal-content h3 { font-size: 2em; color: var(--gold); margin-bottom: 15px; }
+        .modal-content p { margin-bottom: 25px; font-size: 1.1em; }
+        #profile-page input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555; background: #333; color: white; font-size: 1em; }
+        #admin-panel-container { display: none; }
+        #admin-panel-container .stat { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 1.1em; }
+        #admin-panel-container input { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="container">
+            <div class="earnings-header"><h2 >My Earnings</h2><p id="earnings-display">₹0</p></div>
+            <div id="spin-page" class="page active"><div class="spin-wheel-container"><div class="pointer"></div><div id="wheel"></div><button id="spin-btn">SPIN</button></div></div>
+            <div id="scratch-page" class="page"><div class="section"><h2>Scratch & Win</h2><p>Click the card below to reveal your prize!</p><div id="scratch-card-container"><span id="scratch-prize">₹50</span><div id="scratch-cover">Scratch Here</div></div><button id="reset-scratch-btn" class="btn btn-blue" style="margin-top: 20px;">Get New Card</button></div></div>
+            <div id="redeem-page" class="page"><div class="section"><h2>Redeem Earnings</h2><p style="font-size: 1.1em; color: #ccc;">For Redeem Money, Share with 10 Friends</p><div class="referral-status">Your Referral Progress: <span id="referral-counter">0/10</span></div><button id="refer-btn" class="btn btn-green">Refer a Friend</button><button id="redeem-btn" class="btn btn-red disabled" style="margin-top: 20px;">Redeem Now</button></div></div>
+            <div id="profile-page" class="page"><div class="section"><div id="login-view"><h2>Login / Register</h2><input type="email" id="login-email" placeholder="Enter your email" required style="margin-top: 15px;"><input type="password" id="login-password" placeholder="Enter password" required><button id="login-btn" class="btn btn-blue">Login</button></div><div id="profile-view" style="display: none;"><h3 id="welcome-message">Welcome!</h3><p>You are logged in.</p><button id="logout-btn" class="btn btn-red">Logout</button></div></div></div>
+        </div>
+    </div>
+    
+    <div id="admin-panel-container">
+        <h2>Admin Panel</h2>
+        <div class="stat"><span>Total Users:</span><span>15,432</span></div>
+        <div class="stat"><span>Total Spins:</span><span id="admin-total-spins">78,123</span></div>
+        <div class="stat"><span>Total Transactions:</span><span>1,204</span></div>
+        <div><label for="payment-link-input">Edit Payment Link:</label><input type="text" id="payment-link-input" value="https://example-upi-gateway.com/pay"><button id="save-link-btn" class="btn btn-green" style="margin-top: 10px;">Save Link</button></div>
+        <button id="admin-logout-btn" class="btn btn-red" style="margin-top: 20px;">Logout from Admin</button>
+    </div>
+    
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-page="spin-page"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2Zm0 18C7.6 20 4 16.4 4 12S7.6 4 12 4s8 3.6 8 8-3.6 8-8 8Zm-1-8.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5c0 .6-.4 1.1-.9 1.4l1.4 1.4c.4-.3.7-.8.7-1.3 0-1.1-.9-2-2-2s-2 .9-2 2c0 .5.2 1 .5 1.3l1.2-1.2c-.3-.2-.5-.5-.5-.8Z"/></svg> <span>Spin</span></div>
+        <div class="nav-item" data-page="scratch-page"><svg viewBox="0 0 24 24"><path d="M21.4 11.6l-9-9c-.4-.4-1-.4-1.4 0l-9 9c-.4.4-.4 1 0 1.4l9 9c.4.4 1 .4 1.4 0l9-9c.4-.4.4-1 0-1.4ZM12 20.6L3.4 12 12 3.4 20.6 12 12 20.6Z"/></svg> <span>Scratch</span></div>
+        <div class="nav-item" data-page="redeem-page"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 14H4V8h16v10Zm0-12H4V6h16v2Z"/></svg> <span>Redeem</span></div>
+        <div class="nav-item" data-page="profile-page"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> <span>Profile</span></div>
+    </nav>
+
+    <div id="popup" class="modal"><div class="modal-content"><h3 id="popup-title"></h3><p id="popup-message"></p><button id="popup-close-btn" class="btn btn-green"></button></div></div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- CONFIGURATION (FROM YOUR XML FILE) ---
+        const prizeValues = [10, 5, 20, 50, 2, 100, 15, 0];
+        const colors = ['#f87171', '#fb923c', '#facc15', '#a3e635', '#4ade80', '#38bdf8', '#818cf8', '#c084fc'];
+        
+        // --- MY APP'S CONFIGURATION ---
+        const referralsNeeded = 10, ADMIN_EMAIL = "samim731948@gmail.com", ADMIN_PASSWORD = "Samim@123";
+        let paymentGatewayLink = "https://example-upi-gateway.com/pay", isSpinning = false, referralCount = 0, totalEarnings = 0, totalSpins = 78123;
+        
+        // --- ELEMENT REFERENCES ---
+        const wheel = document.getElementById('wheel'), spinBtn = document.getElementById('spin-btn'), earningsDisplay = document.getElementById('earnings-display');
+        const navItems = document.querySelectorAll('.nav-item'), pages = document.querySelectorAll('.page');
+        const referBtn = document.getElementById('refer-btn'), redeemBtn = document.getElementById('redeem-btn'), referralCounter = document.getElementById('referral-counter');
+        const popup = document.getElementById('popup'), popupTitle = document.getElementById('popup-title'), popupMessage = document.getElementById('popup-message'), popupCloseBtn = document.getElementById('popup-close-btn');
+        const scratchCover = document.getElementById('scratch-cover'), scratchPrize = document.getElementById('scratch-prize'), resetScratchBtn = document.getElementById('reset-scratch-btn');
+        const mainContainer = document.querySelector('.main-container'), adminPanel = document.getElementById('admin-panel-container');
+        const loginView = document.getElementById('login-view'), profileView = document.getElementById('profile-view'), loginBtn = document.getElementById('login-btn'), logoutBtn = document.getElementById('logout-btn');
+        const loginEmail = document.getElementById('login-email'), loginPassword = document.getElementById('login-password'), welcomeMessage = document.getElementById('welcome-message');
+        const saveLinkBtn = document.getElementById('save-link-btn'), paymentLinkInput = document.getElementById('payment-link-input'), adminTotalSpins = document.getElementById('admin-total-spins'), adminLogoutBtn = document.getElementById('admin-logout-btn');
+
+        // --- CORE FUNCTIONS ---
+        const updateEarnings = (amount) => { totalEarnings += amount; earningsDisplay.textContent = `₹${totalEarnings}`; };
+        const showPopup = (title, message, buttonText = "OK", callback = null) => { popupTitle.textContent = title; popupMessage.textContent = message; const newBtn = popupCloseBtn.cloneNode(true); newBtn.textContent = buttonText; popupCloseBtn.parentNode.replaceChild(newBtn, popupCloseBtn); popup.classList.add('show'); newBtn.addEventListener('click', () => { popup.classList.remove('show'); if (callback) callback(); }, { once: true }); };
+        
+        // --- NAVIGATION ---
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (adminPanel.style.display === 'block') { showPopup("Access Denied", "Please log out from admin panel first."); return; }
+                const targetPage = item.getAttribute('data-page');
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                pages.forEach(page => page.classList.toggle('active', page.id === targetPage));
+            });
+        });
+
+        // --- SPIN WHEEL LOGIC (COMBINED) ---
+        const segmentAngle = 360 / prizeValues.length;
+        const createWheel = () => {
+            wheel.innerHTML = '';
+            let conicGradient = colors.map((c, i) => `${c} ${segmentAngle * i}deg ${segmentAngle * (i + 1)}deg`).join(', ');
+            wheel.style.background = `conic-gradient(${conicGradient})`;
+            prizeValues.forEach((prize, i) => {
+                const label = document.createElement('div');
+                label.className = 'wheel-label';
+                label.textContent = `₹${prize}`;
+                const angleRad = (segmentAngle * i + segmentAngle / 2) * Math.PI / 180;
+                const radius = (wheel.offsetWidth / 2) * 0.7;
+                label.style.left = `calc(50% + ${radius * Math.cos(angleRad)}px)`;
+                label.style.top = `calc(50% + ${radius * Math.sin(angleRad)}px)`;
+                label.style.transform = `translate(-50%, -50%) rotate(${(segmentAngle * i) + (segmentAngle / 2) + 90}deg)`;
+                wheel.appendChild(label);
+            });
+        };
+
+        const spinWheel = () => {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            const randomExtraTurns = Math.floor(Math.random() * 5) + 3;
+            const randomStopAngle = Math.floor(Math.random() * 360);
+            const totalRotation = (randomExtraTurns * 360) + randomStopAngle;
+
+            wheel.style.transition = 'transform 5s cubic-bezier(0.25, 1, 0.5, 1)';
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                
+                const actualRotation = totalRotation % 360;
+                
+                // This formula calculates the winning segment based on the final angle
+                const prizeIndex = Math.floor((360 - actualRotation) / segmentAngle);
+                const prize = prizeValues[prizeIndex];
+                
+                if (prize !== undefined) {
+                   updateEarnings(prize);
+                   showPopup("Congratulations!", `You won ₹${prize}!`);
+                }
+                
+                // Reset transition for the next spin
+                wheel.style.transition = 'none';
+                wheel.style.transform = `rotate(${actualRotation}deg)`;
+                setTimeout(() => { wheel.style.transition = 'transform 5s cubic-bezier(0.25, 1, 0.5, 1)'; }, 50);
+
+            }, 5000);
+        };
+        
+        // --- SCRATCH CARD LOGIC ---
+        const setupScratchCard = () => { const prizes = [10, 20, 50, 100, 5, 2]; const randomPrize = prizes[Math.floor(Math.random() * prizes.length)]; scratchPrize.textContent = `₹${randomPrize}`; scratchPrize.dataset.amount = randomPrize; scratchPrize.style.visibility = 'hidden'; scratchCover.style.opacity = '1'; };
+        scratchCover.addEventListener('click', () => { if (scratchCover.style.opacity === '0') return; scratchCover.style.opacity = '0'; scratchPrize.style.visibility = 'visible'; const prizeAmount = parseFloat(scratchPrize.dataset.amount); updateEarnings(prizeAmount); showPopup("You Scratched & Won!", `You earned ₹${prizeAmount}!`); });
+        
+        // --- REFER & REDEEM LOGIC ---
+        const updateRedeemUI = () => { referralCounter.textContent = `${referralCount}/${referralsNeeded}`; redeemBtn.classList.toggle('disabled', referralCount < referralsNeeded); };
+        referBtn.addEventListener('click', () => {
+            const message = "I earned ₹900 in one day from this Spin & Earn app! You can earn too — spin and win real cash! [YourLinkHere]";
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            showPopup("Redirecting...", "You will be taken to WhatsApp to share. One referral will be added for you after this.", "Continue", () => {
+                if (referralCount < referralsNeeded) { referralCount++; updateRedeemUI(); }
+                window.open(whatsappUrl, '_blank');
+            });
+        });
+        redeemBtn.addEventListener('click', () => { if (!redeemBtn.classList.contains('disabled')) { showPopup("Confirm Redemption", `Click Continue to redeem your earnings.`, "Continue", () => { showPopup("Redirecting...", `You are being sent to ${paymentGatewayLink}`); }); } });
+        
+        // --- LOGIN & ADMIN LOGIC ---
+        loginBtn.addEventListener('click', () => {
+            const email = loginEmail.value, password = loginPassword.value;
+            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) { mainContainer.style.display = 'none'; adminPanel.style.display = 'block'; showPopup("Success", "Admin Panel Unlocked."); } 
+            else if (email) { loginView.style.display = 'none'; profileView.style.display = 'block'; welcomeMessage.textContent = `Welcome, User!`; } 
+            else { showPopup("Error", "Please enter your email and password."); }
+        });
+        const performLogout = () => {
+            mainContainer.style.display = 'block'; adminPanel.style.display = 'none';
+            loginView.style.display = 'block'; profileView.style.display = 'none';
+            loginEmail.value = ''; loginPassword.value = '';
+            navItems.forEach(item => { const isSpinPage = item.getAttribute('data-page') === 'spin-page'; item.classList.toggle('active', isSpinPage); document.getElementById(item.getAttribute('data-page')).classList.toggle('active', isSpinPage); });
+        };
+        logoutBtn.addEventListener('click', performLogout);
+        adminLogoutBtn.addEventListener('click', performLogout);
+        saveLinkBtn.addEventListener('click', () => { paymentGatewayLink = paymentLinkInput.value; showPopup("Saved!", `The new payment link is now active.`); });
+        
+        // --- INITIAL SETUP ---
+        spinBtn.addEventListener('click', spinWheel);
+        resetScratchBtn.addEventListener('click', setupScratchCard);
+        window.addEventListener('resize', createWheel);
+        createWheel();
+        updateRedeemUI();
+        setupScratchCard();
+        adminTotalSpins.textContent = totalSpins.toLocaleString();
+    });
+    </script>
+</body>
+</html>
